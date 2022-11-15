@@ -103,9 +103,25 @@ UserSchema.pre('save', async function (next) {
     next();
 });
 
+// setting user password changed time
+UserSchema.pre('save', function (next) {
+    if (!this.isModified('password') || this.isNew) next();
+    this.passwordChangedAt = Date.now();
+    next();
+});
+
 // password checking
 UserSchema.methods.checkPassword = async (password, documentPassword) => {
     return await bcrypt.compare(password, documentPassword);
+};
+
+// checking user changed password recently
+UserSchema.methods.hasUserChangedPassword = function (jwtIssued) {
+    if (this.passwordChangedAt) {
+        const passwordChangedTime = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
+        return jwtIssued < passwordChangedTime;
+    }
+    return false;
 };
 
 // creating model

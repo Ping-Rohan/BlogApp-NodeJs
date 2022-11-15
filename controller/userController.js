@@ -1,6 +1,7 @@
 const User = require('../model/UserModel');
 const AppError = require('../utility/AppError');
 const catchAsync = require('../utility/catchAsync');
+const signJWT = require('../utility/signJWT');
 
 // signup
 exports.signUp = catchAsync(async (request, response) => {
@@ -9,6 +10,7 @@ exports.signUp = catchAsync(async (request, response) => {
     response.status(200).json({
         message: 'User Created Successfully',
         document,
+        token: signJWT(document._id),
     });
 });
 
@@ -24,8 +26,63 @@ exports.login = catchAsync(async (request, response, next) => {
     if (!document || !(await document.checkPassword(password, document.password)))
         return next(new AppError('Email or password incorrect'));
 
+    // signing token
+    const token = signJWT(document._id);
+
     // sending token as response
     response.status(200).json({
         message: 'Logged in Successfully',
+        token,
+    });
+});
+
+// find user by id
+exports.getUserById = catchAsync(async (request, response, next) => {
+    const userId = request.params.id;
+    const document = await User.findById(userId).select('-password');
+
+    response.status(200).json({
+        document,
+    });
+});
+
+// update feilds
+exports.updateFields = catchAsync(async (request, response, next) => {
+    // deleting password field from request obj
+    if (request.body.password) delete request.body['password'];
+
+    const document = await User.findByIdAndUpdate(request.user._id, request.body, {
+        new: true,
+        runValidators: true,
+    });
+
+    response.status(200).json({
+        message: 'Updated Successfully',
+        document,
+    });
+});
+
+// change password
+exports.changePassword = catchAsync(async (request, response, next) => {
+    const { currentPassword, password, confirmPassword } = request.body;
+    if (!currentPassword) return next(new AppError('Enter Current Password'));
+
+    // finding document
+    const document = await User.findById(request.user._id);
+    if (!document) return next(new AppError('Wrong UserId'));
+
+    //checking if password is correct
+    if (!(await document.checkPassword(currentPassword, document.password)))
+        return next(new AppError('Wrong Password'));
+
+    // updating password
+    document.password = password;
+    document.confirmPassword = confirmPassword;
+
+    // saving document
+    await document.save();
+
+    response.status(200).json({
+        message: 'Password Changed Successfully',
     });
 });
