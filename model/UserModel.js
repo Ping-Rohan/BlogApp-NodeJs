@@ -105,11 +105,10 @@ UserSchema.pre('save', async function (next) {
 
 // setting user password changed time
 UserSchema.pre('save', function (next) {
-    if (!this.isModified('password') || this.isNew) next();
+    if (!this.isModified('password') || this.isNew) return next();
     this.passwordChangedAt = Date.now();
     next();
 });
-
 // password checking
 UserSchema.methods.checkPassword = async (password, documentPassword) => {
     return await bcrypt.compare(password, documentPassword);
