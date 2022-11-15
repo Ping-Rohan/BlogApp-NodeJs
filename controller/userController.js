@@ -86,3 +86,25 @@ exports.changePassword = catchAsync(async (request, response, next) => {
         message: 'Password Changed Successfully',
     });
 });
+
+exports.followUser = catchAsync(async (request, response, next) => {
+    const { userToBeFollowed } = request.body;
+
+    // checking if that user was already followed
+    const document = await User.findById(request.user._id);
+    if (document.following.includes(userToBeFollowed))
+        return next(new AppError('User Is Already Followed By You'));
+
+    // updating following array
+    document.following.push(userToBeFollowed);
+    document.save({ validateBeforeSave: false });
+
+    // updating followers array
+    await User.findByIdAndUpdate(userToBeFollowed, {
+        $push: { followers: request.user._id },
+    });
+
+    response.status(200).json({
+        message: 'followed successfully',
+    });
+});
