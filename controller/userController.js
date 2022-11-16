@@ -4,6 +4,7 @@ const catchAsync = require('../utility/catchAsync');
 const signJWT = require('../utility/signJWT');
 const sendEmail = require('../utility/nodeMailer');
 const crypto = require('crypto');
+const uploader = require('../utility/cloudinary');
 
 // signup
 exports.signUp = catchAsync(async (request, response) => {
@@ -167,4 +168,11 @@ exports.verifyEmail = catchAsync(async (request, response, next) => {
         message: 'Account Verified Successfully',
         document,
     });
+});
+
+exports.uploadToCloud = catchAsync(async (request, response, next) => {
+    const file = `public/${request.file.filename}`;
+    const data = uploader(file);
+    console.log(data);
+    next();
 });

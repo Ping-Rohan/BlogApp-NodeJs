@@ -1,6 +1,6 @@
 // sending error in development env
 function sendErrorDevelopment(error, response) {
-    response.status(error.statusCode).json({
+    return response.status(error.statusCode).json({
         status: error.status,
         error,
         message: error.message,
@@ -10,7 +10,7 @@ function sendErrorDevelopment(error, response) {
 
 // sending error in production env
 function sendErrorProduction(error, response) {
-    response.status(error.status).json({
+    return response.status(error.status).json({
         status: error.status,
         message: error.message,
     });
@@ -30,7 +30,7 @@ module.exports = (error, request, response, next) => {
             sendErrorProduction(error, response);
         } else {
             // error for non operational error
-            response.status(error.statusCode).json({
+            return response.status(error.statusCode).json({
                 message: 'Something Went Very Wrong',
             });
         }
