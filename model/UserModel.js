@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const { timeStamp } = require('console');
 
 // defining schema
 const UserSchema = mongoose.Schema(
@@ -109,6 +111,7 @@ UserSchema.pre('save', function (next) {
     this.passwordChangedAt = Date.now();
     next();
 });
+
 // password checking
 UserSchema.methods.checkPassword = async (password, documentPassword) => {
     return await bcrypt.compare(password, documentPassword);
@@ -121,6 +124,15 @@ UserSchema.methods.hasUserChangedPassword = function (jwtIssued) {
         return jwtIssued < passwordChangedTime;
     }
     return false;
+};
+
+// generating email verification token
+UserSchema.methods.createEmailVerificationToken = function () {
+    const token = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    this.accountVerificationToken = hashedToken;
+    this.accountVerificationExpires = Date.now() + 10 * 60 * 1000;
+    return token;
 };
 
 // creating model

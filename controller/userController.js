@@ -2,15 +2,27 @@ const User = require('../model/UserModel');
 const AppError = require('../utility/AppError');
 const catchAsync = require('../utility/catchAsync');
 const signJWT = require('../utility/signJWT');
+const sendEmail = require('../utility/nodeMailer');
+const crypto = require('crypto');
 
 // signup
 exports.signUp = catchAsync(async (request, response) => {
     const document = await User.create(request.body);
 
+    // generating verification token and link
+    const verificationToken = document.createEmailVerificationToken();
+    const verificationLink = `localhost:3000/api/v1/verify-email/${verificationToken}`;
+
+    document.save({ validateBeforeSave: false });
+
+    // sending email verification mail
+    sendEmail(document.email, verificationLink);
+
     response.status(200).json({
-        message: 'User Created Successfully',
-        document,
         token: signJWT(document._id),
+        message: 'User Created Successfully',
+        verificationMessage:
+            'An email verification link is sent to your email , you need to verify your email inorder to use some features',
     });
 });
 
@@ -127,5 +139,32 @@ exports.unfollowUser = catchAsync(async (request, response, next) => {
 
     response.status(200).json({
         message: 'unfollowed Successfully',
+    });
+});
+
+// email verification
+exports.verifyEmail = catchAsync(async (request, response, next) => {
+    const verificationToken = request.params.token;
+
+    // hasing token
+    const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+
+    // searching document with hashed token
+    const document = await User.findOne({
+        accountVerificationToken: hashedToken,
+        accountVerificationExpires: { $gt: Date.now() },
+    });
+
+    if (!document) return next(new AppError('Invalid Link Or Link Already Expired'));
+
+    document.isVerified = true;
+    document.accountVerificationExpires = undefined;
+    document.createEmailVerificationToken = undefined;
+
+    await document.save({ validateBeforeSave: false });
+
+    response.status(200).json({
+        message: 'Account Verified Successfully',
+        document,
     });
 });

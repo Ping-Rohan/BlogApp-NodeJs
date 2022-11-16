@@ -11,6 +11,7 @@ Router.route('/update').put(authentication.verifyJWT, userController.updateField
 Router.route('/change-password').put(authentication.verifyJWT, userController.changePassword);
 Router.route('/follow').post(authentication.verifyJWT, userController.followUser);
 Router.route('/unfollow').post(authentication.verifyJWT, userController.unfollowUser);
+Router.route('/verify-email/:token').post(userController.verifyEmail);
 
 // exporting router
 module.exports = Router;
