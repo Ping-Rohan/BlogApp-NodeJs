@@ -51,7 +51,7 @@ exports.updateFields = catchAsync(async (request, response, next) => {
     // deleting password field from request obj
     if (request.body.password) delete request.body['password'];
 
-    const document = await User.findByIdAndUpdate(request.user._id, request.body, {
+    const document = await User.findByIdAndUpdate(request.user.id, request.body, {
         new: true,
         runValidators: true,
     });
@@ -87,6 +87,7 @@ exports.changePassword = catchAsync(async (request, response, next) => {
     });
 });
 
+// follow user
 exports.followUser = catchAsync(async (request, response, next) => {
     const { userToBeFollowed } = request.body;
 
@@ -106,5 +107,25 @@ exports.followUser = catchAsync(async (request, response, next) => {
 
     response.status(200).json({
         message: 'followed successfully',
+    });
+});
+
+// unfollow user
+exports.unfollowUser = catchAsync(async (request, response, next) => {
+    const { unfollowId } = request.body;
+    if (!unfollowId) return next(new AppError('Enter User You Want To Unfollow'));
+
+    // updating target user document
+    await User.findByIdAndUpdate(unfollowId, {
+        $pull: { followers: request.user.id },
+    });
+
+    // updating self user document
+    await User.findByIdAndUpdate(request.user.id, {
+        $pull: { following: unfollowId },
+    });
+
+    response.status(200).json({
+        message: 'unfollowed Successfully',
     });
 });
