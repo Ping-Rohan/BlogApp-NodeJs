@@ -5,9 +5,9 @@ const cloudinary = require('../utility/cloudinary');
 
 // class for various image upload methods
 class Upload {
-    constructor(model, file, uploadType) {
+    constructor(model, file, id) {
         this.file = file;
-        this.uploadType = uploadType;
+        this.id = id;
         this.model = model;
     }
 
@@ -16,7 +16,7 @@ class Upload {
     }
 
     async #updatePhotoField(updateField) {
-        await this.model.findByIdAndUpdate(this.uploadType.id, updateField);
+        await this.model.findByIdAndUpdate(this.id, updateField);
         return;
     }
 
@@ -35,7 +35,6 @@ class Upload {
         const imageData = await this.#setCloudinary(localPath);
 
         if (this.model.collection.collectionName === 'users') {
-            console.log(true);
             this.#updatePhotoField({ profileImage: imageData.url });
         } else if (this.model.collection.collectionName === 'posts') {
             this.#updatePhotoField({ image: imageData.url });

@@ -173,7 +173,7 @@ exports.verifyEmail = catchAsync(async (request, response, next) => {
 // upload profile picture
 exports.uploadProfilePic = catchAsync(async (request, response, next) => {
     request.file.filename = `user-${Date.now()}-${request.user.id}`;
-    const upload = await new Upload.Upload(User, request.file, request.user).uploadSinglePhoto();
+    const upload = await new Upload.Upload(User, request.file, request.user.id).uploadSinglePhoto();
 
     return response.status(200).json({
         message: 'Image Uploaded Successfully',
