@@ -60,7 +60,7 @@ exports.getPostById = catchAsync(async (request, response, next) => {
         $inc: { views: 1 },
     });
 
-    const post = await Post.findById(request.params.id);
+    const post = await Post.findById(request.params.id).populate('comments');
 
     response.status(200).json({
         post,

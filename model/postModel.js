@@ -46,16 +46,13 @@ const postSchema = mongoose.Schema(
     }
 );
 
-// populate
-// postSchema.pre(/^find/, function (next) {
-//     this.populate({
-//         path: 'author',
-//         select: 'fullName profileImage',
-//     });
-//     next();
-// });
+// virtual populate
+postSchema.virtual('comments', {
+    ref: 'comment',
+    foreignField: 'post',
+    localField: '_id',
+});
 
-// creating model
 const Post = mongoose.model('post', postSchema);
 
 // exporting post
