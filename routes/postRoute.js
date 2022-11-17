@@ -6,8 +6,14 @@ const Upload = require('../utility/photoUpload');
 
 Router.use(authentication.verifyJWT);
 
-Router.route('/').post(postController.createPost);
-Router.route('/image/:id').post(Upload.uploadImage, postController.uploadPostImage);
+Router.route('/').get(postController.getAllPost).post(postController.createPost);
+
+Router.route('/:id')
+    .get(postController.getPostById)
+    .delete(postController.deletePost)
+    .put(postController.updateFields);
+
+Router.route('/:id/image').post(Upload.uploadImage, postController.uploadPostImage);
 
 // exporting router
 module.exports = Router;

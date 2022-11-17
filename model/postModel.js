@@ -46,6 +46,15 @@ const postSchema = mongoose.Schema(
     }
 );
 
+// populate
+// postSchema.pre(/^find/, function (next) {
+//     this.populate({
+//         path: 'author',
+//         select: 'fullName profileImage',
+//     });
+//     next();
+// });
+
 // creating model
 const Post = mongoose.model('post', postSchema);
 

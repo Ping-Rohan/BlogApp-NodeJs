@@ -52,7 +52,7 @@ exports.login = catchAsync(async (request, response, next) => {
 // find user by id
 exports.getUserById = catchAsync(async (request, response, next) => {
     const userId = request.params.id;
-    const document = await User.findById(userId).select('-password');
+    const document = await User.findById(userId).select('-password').populate('posts');
 
     response.status(200).json({
         document,
@@ -173,7 +173,8 @@ exports.verifyEmail = catchAsync(async (request, response, next) => {
 // upload profile picture
 exports.uploadProfilePic = catchAsync(async (request, response, next) => {
     request.file.filename = `user-${Date.now()}-${request.user.id}`;
-    const upload = await new Upload.Upload(User, request.file, request.user.id).uploadSinglePhoto();
+    const path = `public/profile/${request.file.filename}.jpeg`;
+    await new Upload.Upload(User, request.file, request.user.id).uploadSinglePhoto(path);
 
     return response.status(200).json({
         message: 'Image Uploaded Successfully',

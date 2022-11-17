@@ -112,6 +112,13 @@ UserSchema.pre('save', function (next) {
     next();
 });
 
+// virtual populate
+UserSchema.virtual('posts', {
+    ref: 'post',
+    foreignField: 'author',
+    localField: '_id',
+});
+
 // password checking
 UserSchema.methods.checkPassword = async (password, documentPassword) => {
     return await bcrypt.compare(password, documentPassword);

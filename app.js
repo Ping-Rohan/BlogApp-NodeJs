@@ -11,8 +11,8 @@ dotenv.config();
 
 // middlewares
 app.use(express.json());
-app.use('/api/v1', userRouter);
 app.use('/api/v1/post', postRouter);
+app.use('/api/v1', userRouter);
 
 // unhandled routes
 app.use('*', (request, response, next) => {

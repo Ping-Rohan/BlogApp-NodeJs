@@ -29,8 +29,7 @@ class Upload {
         return imageData;
     }
 
-    async uploadSinglePhoto() {
-        const localPath = `public/profile/${this.file.filename}.jpeg`;
+    async uploadSinglePhoto(localPath) {
         await this.#resizeImage(localPath);
         const imageData = await this.#setCloudinary(localPath);
 
