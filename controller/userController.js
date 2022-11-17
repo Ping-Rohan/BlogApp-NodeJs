@@ -4,7 +4,7 @@ const catchAsync = require('../utility/catchAsync');
 const signJWT = require('../utility/signJWT');
 const sendEmail = require('../utility/nodeMailer');
 const crypto = require('crypto');
-const uploader = require('../utility/cloudinary');
+const Upload = require('../utility/photoUpload');
 
 // signup
 exports.signUp = catchAsync(async (request, response) => {
@@ -170,9 +170,12 @@ exports.verifyEmail = catchAsync(async (request, response, next) => {
     });
 });
 
-exports.uploadToCloud = catchAsync(async (request, response, next) => {
-    const file = `public/${request.file.filename}`;
-    const data = uploader(file);
-    console.log(data);
-    next();
+// upload profile picture
+exports.uploadProfilePic = catchAsync(async (request, response, next) => {
+    request.file.filename = `user-${Date.now()}-${request.user.id}`;
+    const upload = await new Upload.Upload(User, request.file, request.user).uploadSinglePhoto();
+
+    return response.status(200).json({
+        message: 'Image Uploaded Successfully',
+    });
 });

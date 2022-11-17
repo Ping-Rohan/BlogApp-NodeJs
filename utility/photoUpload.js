@@ -1,6 +1,47 @@
 const multer = require('multer');
 const AppError = require('./AppError');
 const sharp = require('sharp');
+const cloudinary = require('../utility/cloudinary');
+
+// class for various image upload methods
+class Upload {
+    constructor(model, file, uploadType) {
+        this.file = file;
+        this.uploadType = uploadType;
+        this.model = model;
+    }
+
+    async #resizeImage(saveFilePath) {
+        await sharp(this.file.buffer).resize(400, 500).jpeg({ quality: 90 }).toFile(saveFilePath);
+    }
+
+    async #updatePhotoField(updateField) {
+        await this.model.findByIdAndUpdate(this.uploadType.id, updateField);
+        return;
+    }
+
+    async #setCloudinary(localPath) {
+        const imageData = await cloudinary.uploader.upload(localPath, {
+            use_filename: true,
+            unique_filename: false,
+        });
+
+        return imageData;
+    }
+
+    async uploadSinglePhoto() {
+        const localPath = `public/profile/${this.file.filename}.jpeg`;
+        await this.#resizeImage(localPath);
+        const imageData = await this.#setCloudinary(localPath);
+
+        if (this.model.collection.collectionName === 'users') {
+            console.log(true);
+            this.#updatePhotoField({ profileImage: imageData.url });
+        } else if (this.model.collection.collectionName === 'posts') {
+            this.#updatePhotoField({ image: imageData.url });
+        }
+    }
+}
 
 // creating buffer memory
 const diskStorage = multer.memoryStorage();
@@ -19,16 +60,5 @@ const upload = multer({
     fileFilter: filterMulter,
 });
 
-// implementing resizing
-async function resizeImage(request, response, next) {
-    if (!request.file) next();
-    request.file.filename = `user-${Date.now()}.jpeg`;
-    await sharp(request.file.buffer)
-        .resize(400, 500)
-        .jpeg({ quality: 90 })
-        .toFile(`public/${request.file.filename}`);
-    next();
-}
-
 exports.uploadImage = upload.single('cover');
-exports.resizeImage = resizeImage;
+exports.Upload = Upload;
