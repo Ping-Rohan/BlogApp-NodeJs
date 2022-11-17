@@ -2,6 +2,7 @@ const Post = require('../model/postModel');
 const catchAsync = require('../utility/catchAsync');
 const AppError = require('../utility/AppError');
 const Upload = require('../utility/photoUpload');
+const { findByIdAndUpdate } = require('../model/postModel');
 
 // create post
 exports.createPost = catchAsync(async (request, response, next) => {
@@ -63,5 +64,32 @@ exports.getPostById = catchAsync(async (request, response, next) => {
 
     response.status(200).json({
         post,
+    });
+});
+
+// implementing post likes
+exports.likePost = catchAsync(async (request, response, next) => {
+    // checking if user already Liked
+    let alreadyLiked = false,
+        finalResult;
+    const post = await Post.findById(request.params.id);
+
+    if (post.likes.includes(request.user.id)) alreadyLiked = true;
+
+    // toggle like array if already liked
+    if (alreadyLiked) {
+        finalResult = await Post.findByIdAndUpdate(request.params.id, {
+            $pull: { likes: request.user.id },
+            new: true,
+        });
+    } else {
+        finalResult = await Post.findByIdAndUpdate(request.params.id, {
+            $push: { likes: request.user.id },
+            new: true,
+        });
+    }
+
+    response.status(200).json({
+        likes: finalResult.likes.length,
     });
 });
