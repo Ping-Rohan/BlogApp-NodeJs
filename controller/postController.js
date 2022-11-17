@@ -78,15 +78,21 @@ exports.likePost = catchAsync(async (request, response, next) => {
 
     // toggle like array if already liked
     if (alreadyLiked) {
-        finalResult = await Post.findByIdAndUpdate(request.params.id, {
-            $pull: { likes: request.user.id },
-            new: true,
-        });
+        finalResult = await Post.findByIdAndUpdate(
+            request.params.id,
+            {
+                $pull: { likes: request.user.id },
+            },
+            { new: true }
+        );
     } else {
-        finalResult = await Post.findByIdAndUpdate(request.params.id, {
-            $push: { likes: request.user.id },
-            new: true,
-        });
+        finalResult = await Post.findByIdAndUpdate(
+            request.params.id,
+            {
+                $push: { likes: request.user.id },
+            },
+            { new: true }
+        );
     }
 
     response.status(200).json({

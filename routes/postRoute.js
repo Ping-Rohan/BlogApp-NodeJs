@@ -13,6 +13,8 @@ Router.route('/:id')
     .delete(postController.deletePost)
     .put(postController.updateFields);
 
+Router.route('/:id/like').put(postController.likePost);
+
 Router.route('/:id/image').post(Upload.uploadImage, postController.uploadPostImage);
 
 // exporting router
